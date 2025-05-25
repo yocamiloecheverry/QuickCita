@@ -1,6 +1,7 @@
 const { DataTypes } = require('sequelize');
 const { sequelize } = require('../config/db');
 const Usuario = require('./Usuario');
+const PerfilMedico = require('./PerfilMedico');
 
 const Cita = sequelize.define('Cita', {
   id_cita: {
@@ -49,5 +50,7 @@ Usuario.hasMany(Cita, { foreignKey: 'id_paciente', as: 'CitasPaciente' });
 Usuario.hasMany(Cita, { foreignKey: 'id_medico', as: 'CitasMedico' });
 Cita.belongsTo(Usuario, { foreignKey: 'id_paciente', as: 'Paciente' });
 Cita.belongsTo(Usuario, { foreignKey: 'id_medico', as: 'Medico' });
+Usuario.hasOne(PerfilMedico, { foreignKey: 'id_usuario'});
+PerfilMedico.belongsTo(Usuario, { foreignKey: 'id_usuario' });
 
 module.exports = Cita;

@@ -1,7 +1,7 @@
 import React, { useState, useContext, useEffect } from "react";
 import { AuthContext } from "../context/AuthContext";
 import { searchDoctors } from "../services/doctorService";
-import { createAppointment } from "../services/appointmentService";
+import { createAppointment, getAvailableSlots } from "../services/appointmentService";
 import { getPerfilFilters } from "../services/filterService";
 import LogoutButton from "../components/LogoutButton";
 import {
@@ -34,6 +34,9 @@ export default function Dashboard() {
   const [doctors, setDoctors] = useState([]);
   const [loading, setLoading] = useState(false);
 
+  // Slots disponibles por médico
+  const [slotsByDoctor, setSlotsByDoctor] = useState({});
+
   // Modal de agendamiento
   const [showModal, setShowModal] = useState(false);
   const [selectedDoctor, setSelectedDoctor] = useState(null);
@@ -61,6 +64,17 @@ export default function Dashboard() {
     try {
       const docs = await searchDoctors(filters);
       setDoctors(docs);
+
+      // cargar slots para cada doctor
+      const slotsMap = {};
+      await Promise.all(
+        docs.map(async doc => {
+          const slots = await getAvailableSlots(doc.id_usuario);
+          slotsMap[doc.id_usuario] = slots;
+        })
+      );
+      setSlotsByDoctor(slotsMap);
+
     } catch (err) {
       console.error("Error buscando médicos:", err);
       alert(err.message || "Error al buscar médicos");
@@ -69,9 +83,9 @@ export default function Dashboard() {
     }
   };
 
-  const openModal = doctor => {
+  const openModal = (doctor, slot) => {
     setSelectedDoctor(doctor);
-    setFechaHora("");
+    setFechaHora(slot);
     setShowModal(true);
   };
 
@@ -158,16 +172,29 @@ export default function Dashboard() {
       <Row className="mt-4 g-3">
         {doctors.map(doc => (
           <Col key={doc.id_usuario} xs={12} md={6} lg={4}>
-            <Card>
+            <Card className="h-100">
               <Card.Body>
                 <Card.Title>{doc.nombre}</Card.Title>
                 <Card.Text>
                   <strong>Especialidad:</strong> {doc.PerfilMedico?.especialidad}<br />
                   <strong>Ubicación:</strong> {doc.PerfilMedico?.ubicacion}
                 </Card.Text>
-                <Button variant="primary" onClick={() => openModal(doc)}>
-                  Agendar Cita
-                </Button>
+
+                {/* slots disponibles */}
+                <div style={{ maxHeight: 120, overflowY: 'auto' }}>
+                  {slotsByDoctor[doc.id_usuario]?.length > 0 ? (
+                    slotsByDoctor[doc.id_usuario].map(slot => (
+                      <div key={slot} className="d-flex justify-content-between align-items-center mb-1">
+                        <small>{new Date(slot).toLocaleString()}</small>
+                        <Button size="sm" onClick={() => openModal(doc, slot)}>
+                          Reservar
+                        </Button>
+                      </div>
+                    ))
+                  ) : (
+                    <p className="text-muted">No hay horarios disponibles</p>
+                  )}
+                </div>
               </Card.Body>
             </Card>
           </Col>
@@ -183,9 +210,9 @@ export default function Dashboard() {
           <Form.Group className="mb-3">
             <Form.Label>Fecha y hora</Form.Label>
             <Form.Control
-              type="datetime-local"
-              value={fechaHora}
-              onChange={e => setFechaHora(e.target.value)}
+              type="text"
+              readOnly
+              value={new Date(fechaHora).toLocaleString()}
             />
           </Form.Group>
           <Form.Group className="mb-3">

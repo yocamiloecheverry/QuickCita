@@ -1,32 +1,38 @@
-// frontend/src/App.js
-import React from "react";
-import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
-import { AuthProvider } from "./context/AuthContext";
-import 'bootstrap/dist/css/bootstrap.min.css';
+import React from 'react'
+import {
+  BrowserRouter,
+  Routes,
+  Route,
+  Navigate
+} from 'react-router-dom'
+import { AuthProvider } from './context/AuthContext'
 
-import Home from "./pages/Home";
-import Login from "./pages/Login";
-import Register from "./pages/Register";
-import Dashboard from "./pages/Dashboard";        // <-- crea este archivo
-import PrivateRoute from "./components/PrivateRoute";
-import MedicoHome from "./pages/MedicoHome";
-import ValidarPerfil from "./pages/ValidarPerfil";
-import Calendario from "./pages/Calendario";
-import Alertas from "./pages/Alertas";
+import Home from './pages/Home'
+import Login from './pages/Login'
+import Register from './pages/Register'
+import Dashboard from './pages/Dashboard'
+import PrivateRoute from './components/PrivateRoute'
 
-function App() {
+import MedicoHome from './pages/MedicoHome'
+import ValidarPerfil from './pages/ValidarPerfil'
+import Calendario from './pages/Calendario'
+import Alertas from './pages/Alertas'
+
+import AdminHome from './pages/AdminHome'
+import ApproveDoctors from './pages/ApproveDoctors'
+import ConfigureRoles from './pages/ConfigureRoles'
+
+export default function App() {
   return (
-    <AuthProvider>
-      <Router>
+    <BrowserRouter>          {/* ← El Router envuelve TODO */}
+      <AuthProvider>
         <Routes>
-          {/* Ruta pública principal */}
+          {/* Público */}
           <Route path="/" element={<Home />} />
-
-          {/* Rutas públicas de autenticación */}
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
 
-          {/* Ruta privada: solo accesible si estás logueado */}
+          {/* Paciente */}
           <Route
             path="/dashboard"
             element={
@@ -35,8 +41,10 @@ function App() {
               </PrivateRoute>
             }
           />
+
+          {/* Médico (rutas anidadas) */}
           <Route
-            path="/medico"
+            path="/medico/*"
             element={
               <PrivateRoute roles={['medico']}>
                 <MedicoHome />
@@ -49,12 +57,24 @@ function App() {
             <Route path="alertas" element={<Alertas />} />
           </Route>
 
-          {/* Cualquier otra ruta redirige a Home */}
+          {/* Administrador (rutas anidadas) */}
+          <Route
+            path="/admin/*"
+            element={
+              <PrivateRoute roles={['administrador']}>
+                <AdminHome />
+              </PrivateRoute>
+            }
+          >
+            <Route index element={<ApproveDoctors />} />
+            <Route path="medicos" element={<ApproveDoctors />} />
+            <Route path="configurar" element={<ConfigureRoles />} />
+          </Route>
+
+          {/* Cualquiera otra*/}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
-      </Router>
-    </AuthProvider>
-  );
+      </AuthProvider>
+    </BrowserRouter>
+  )
 }
-
-export default App;

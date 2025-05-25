@@ -1,4 +1,4 @@
-const { DataTypes } = require('sequelize');
+const { Model, DataTypes } = require('sequelize');
 const { sequelize } = require('../config/db');
 const Usuario = require('./Usuario');
 
@@ -33,6 +33,11 @@ const PerfilMedico = sequelize.define('PerfilMedico', {
     type: DataTypes.STRING,
     allowNull: true,
   },
+  aprobado: {
+    type: DataTypes.BOOLEAN,
+    allowNull: false,
+    defaultValue: false,
+  }
 }, {
   timestamps: true,
   tableName: 'perfiles_medicos',

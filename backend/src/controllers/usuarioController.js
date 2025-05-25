@@ -103,8 +103,30 @@ const getUserProfile = async (req, res) => {
   }
 };
 
+const listarMedicos = async (req, res) => {
+  const { especialidad, ubicacion, seguro_medico } = req.query;
+  try {
+    const medicos = await Usuario.findAll({
+      where: { rol: 'medico' },
+      include: [{
+        model: PerfilMedico,
+        where: {
+          ...(especialidad  && { especialidad }),
+          ...(ubicacion     && { ubicacion }),
+          ...(seguro_medico && { seguro_medico }),
+        }
+      }]
+    });
+    return res.json(medicos);
+  } catch (err) {
+    console.error('Error en listarMedicos:', err);
+    return res.status(500).json({ message: 'Error al buscar médicos' });
+  }
+};
+
 module.exports = {
   registerUser,
   loginUser,
   getUserProfile,
+  listarMedicos,
 };
