@@ -24,25 +24,25 @@ import ConfigureRoles from './pages/ConfigureRoles'
 
 export default function App() {
   return (
-    <BrowserRouter>          {/* ← El Router envuelve TODO */}
+    <BrowserRouter>          
       <AuthProvider>
         <Routes>
-          {/* Público */}
+          {/* Rutas Públicas */}
           <Route path="/" element={<Home />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
 
-          {/* Paciente */}
+          {/* Dashboard paciente */}
           <Route
             path="/dashboard"
             element={
-              <PrivateRoute>
+              <PrivateRoute roles={['paciente']}>
                 <Dashboard />
               </PrivateRoute>
             }
           />
 
-          {/* Médico (rutas anidadas) */}
+          {/* Médico: rutas anidadas bajo /medico */}
           <Route
             path="/medico/*"
             element={
@@ -51,13 +51,13 @@ export default function App() {
               </PrivateRoute>
             }
           >
-            <Route index element={<ValidarPerfil />} />
-            <Route path="validar" element={<ValidarPerfil />} />
+            <Route index    element={<ValidarPerfil />} />
+            <Route path="validar"   element={<ValidarPerfil />} />
             <Route path="calendario" element={<Calendario />} />
-            <Route path="alertas" element={<Alertas />} />
+            <Route path="alertas"    element={<Alertas />} />
           </Route>
 
-          {/* Administrador (rutas anidadas) */}
+          {/* Administrador: rutas anidadas bajo /admin */}
           <Route
             path="/admin/*"
             element={
@@ -66,12 +66,12 @@ export default function App() {
               </PrivateRoute>
             }
           >
-            <Route index element={<ApproveDoctors />} />
-            <Route path="medicos" element={<ApproveDoctors />} />
+            <Route index         element={<ApproveDoctors />} />
+            <Route path="medicos"   element={<ApproveDoctors />} />
             <Route path="configurar" element={<ConfigureRoles />} />
           </Route>
 
-          {/* Cualquiera otra*/}
+          {/* Cualquier otra → Home */}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </AuthProvider>

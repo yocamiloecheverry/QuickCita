@@ -1,6 +1,7 @@
+// src/pages/Register.js
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { registerUser } from "../services/authService";
+import { registerUser, loginUser } from "../services/authService"; // ← importamos loginUser
 import styled from "styled-components";
 import { InputGroup, Form } from "react-bootstrap";
 
@@ -68,13 +69,12 @@ const EyeToggle = styled(InputGroup.Text)`
   justify-content: center;
   padding: 0.5rem;
   background: white;
-  border-left: 0;               /* quita la línea divisoria izquierda */
+  border-left: 0;
   border-top-right-radius: .25rem;
   border-bottom-right-radius: .25rem;
   cursor: pointer;
 `;
 
-// Campo de contraseña sin radios redondeados a la derecha
 const PasswordField = styled(Form.Control)`
   border-top-right-radius: 0;
   border-bottom-right-radius: 0;
@@ -82,6 +82,8 @@ const PasswordField = styled(Form.Control)`
 
 export default function Register() {
   const navigate = useNavigate();
+
+  // datos del registro nuevo
   const [form, setForm] = useState({
     nombre: "",
     email: "",
@@ -91,6 +93,13 @@ export default function Register() {
     red_social: "",
     rol: "paciente",
   });
+
+  // credenciales del admin existente
+  const [adminCreds, setAdminCreds] = useState({
+    adminEmail: "",
+    adminPassword: ""
+  });
+
   const [success, setSuccess] = useState("");
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -99,17 +108,21 @@ export default function Register() {
 
   const onChange = e => {
     const { name, value } = e.target;
-    setForm(prev => ({ ...prev, [name]: value }));
+    if (name === "adminEmail" || name === "adminPassword") {
+      setAdminCreds(c => ({ ...c, [name]: value }));
+    } else {
+      setForm(f => ({ ...f, [name]: value }));
+    }
+    setError("");
   };
 
   const onSubmit = async e => {
     e.preventDefault();
     setError("");
-    // Validaciones de contraseña
+
+    // 1) Validar contraseña
     if (!passwordRegex.test(form.password)) {
-      setError(
-        "La contraseña debe tener mínimo 8 caracteres, al menos una mayúscula, una minúscula y un carácter especial."
-      );
+      setError("La contraseña debe tener mínimo 8 caracteres, al menos una mayúscula, una minúscula y un carácter especial.");
       return;
     }
     if (form.password !== form.confirmPassword) {
@@ -118,6 +131,28 @@ export default function Register() {
     }
 
     setSubmitting(true);
+
+    // 2) Si quieren crear un Admin, primero autenticamos al Admin existente
+    if (form.rol === "administrador") {
+      if (!adminCreds.adminEmail || !adminCreds.adminPassword) {
+        setError("Debes ingresar email y contraseña de un Administrador existente.");
+        setSubmitting(false);
+        return;
+      }
+      try {
+        // loginUser lanza error si falla
+        await loginUser({
+          email: adminCreds.adminEmail,
+          password: adminCreds.adminPassword
+        });
+      } catch (err) {
+        setError(err.message || "Autenticación de Admin fallida.");
+        setSubmitting(false);
+        return;
+      }
+    }
+
+    // 3) Ya validado (o rol != admin), procedemos a registrar
     try {
       await registerUser({
         nombre: form.nombre,
@@ -127,9 +162,8 @@ export default function Register() {
         red_social: form.red_social,
         rol: form.rol
       });
-      setSuccess(
-        "Registro creado con éxito. En breve serás redirigido al inicio de sesión..."
-      );
+
+      setSuccess("Registro creado con éxito. En breve serás redirigido al inicio de sesión...");
       setTimeout(() => navigate("/login", { replace: true }), 3000);
     } catch (err) {
       setError(err.message || "Ocurrió un error al registrar.");
@@ -208,6 +242,7 @@ export default function Register() {
             onChange={onChange}
             disabled={submitting}
           />
+
           <StyledSelect
             name="rol"
             value={form.rol}
@@ -220,8 +255,32 @@ export default function Register() {
             <option value="administrador">Administrador</option>
           </StyledSelect>
 
+          {form.rol === "administrador" && (
+            <>
+              <hr />
+              <Input
+                name="adminEmail"
+                type="email"
+                placeholder="Admin existente: Email"
+                value={adminCreds.adminEmail}
+                onChange={onChange}
+                disabled={submitting}
+                required
+              />
+              <Input
+                name="adminPassword"
+                type="password"
+                placeholder="Admin existente: Contraseña"
+                value={adminCreds.adminPassword}
+                onChange={onChange}
+                disabled={submitting}
+                required
+              />
+            </>
+          )}
+
           <StyledButton type="submit" disabled={submitting}>
-            {submitting ? "Registrando..." : "Registrarse"}
+            {submitting ? "Procesando..." : "Registrarse"}
           </StyledButton>
         </StyledForm>
       )}
