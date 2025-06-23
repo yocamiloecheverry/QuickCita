@@ -15,12 +15,12 @@ module.exports = {
       },
       cedula_profesional: {
         type: Sequelize.STRING,
-        allowNull: false,
+        allowNull: true,
         unique: true,
       },
       especialidad: {
         type: Sequelize.STRING,
-        allowNull: false,
+        allowNull: true,
       },
       ubicacion: {
         type: Sequelize.STRING,

@@ -1,3 +1,5 @@
+// backend/src/controllers/usuarioController.js
+
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const Usuario = require('../models/Usuario');
@@ -5,24 +7,19 @@ const PerfilMedico = require('../models/PerfilMedico');
 
 const registerUser = async (req, res) => {
   try {
-    // 1) Extraer TODOS los campos del body, incluyendo password
     const { nombre, email, telefono, red_social, rol, password } = req.body;
 
-    // 2) Verificar que password venga
     if (!password) {
       return res.status(400).json({ message: 'La contraseña es obligatoria' });
     }
 
-    // 3) Revisar si el email ya existe
     const existingUser = await Usuario.findOne({ where: { email } });
     if (existingUser) {
       return res.status(400).json({ message: 'El email ya está registrado.' });
     }
 
-    // 4) Hashear la contraseña
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // 5) Crear el usuario en la BD (campo 'contrasena' en tu modelo)
     const newUser = await Usuario.create({
       nombre,
       email,
@@ -32,19 +29,16 @@ const registerUser = async (req, res) => {
       rol,
     });
 
-    // 5.1) Si el rol es 'medico', crear un perfil médico
     if (rol === 'medico') {
+      // Solo creamos el perfil vacío; el médico lo completará al iniciar sesión
       await PerfilMedico.create({
-        id_usuario: newUser.id_usuario,
-        especialidad: req.body.especialidad,
-        ubicacion: req.body.ubicacion,
-        seguro_medico: req.body.seguro_medico,
+        id_usuario: newUser.id_usuario
       });
     }
-    res.status(201).json(newUser);
-    
-    // 6) Responder
+
+    // Única respuesta de éxito
     return res.status(201).json(newUser);
+
   } catch (error) {
     console.error('Error en registerUser:', error);
     return res.status(500).json({ message: 'Error en el servidor' });
@@ -96,15 +90,16 @@ const getUserProfile = async (req, res) => {
       return res.status(404).json({ message: 'Usuario no encontrado' });
     }
 
-    res.json(user);
+    return res.json(user);
   } catch (error) {
     console.error('Error en getUserProfile:', error.message);
-    res.status(500).json({ message: 'Error en el servidor' });
+    return res.status(500).json({ message: 'Error en el servidor' });
   }
 };
 
 const listarMedicos = async (req, res) => {
   const { especialidad, ubicacion, seguro_medico } = req.query;
+
   try {
     const medicos = await Usuario.findAll({
       where: { rol: 'medico' },
@@ -117,6 +112,7 @@ const listarMedicos = async (req, res) => {
         }
       }]
     });
+
     return res.json(medicos);
   } catch (err) {
     console.error('Error en listarMedicos:', err);

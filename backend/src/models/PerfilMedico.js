@@ -18,12 +18,12 @@ const PerfilMedico = sequelize.define('PerfilMedico', {
   },
   cedula_profesional: {
     type: DataTypes.STRING,
-    allowNull: false,
+    allowNull: true,
     unique: true,
   },
   especialidad: {
     type: DataTypes.STRING,
-    allowNull: false,
+    allowNull: true,
   },
   ubicacion: {
     type: DataTypes.STRING,
