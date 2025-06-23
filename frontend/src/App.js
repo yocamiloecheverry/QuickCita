@@ -22,6 +22,7 @@ import AdminHome from './pages/AdminHome'
 import ApproveDoctors from './pages/ApproveDoctors'
 import ConfigureRoles from './pages/ConfigureRoles'
 
+
 export default function App() {
   return (
     <BrowserRouter>          

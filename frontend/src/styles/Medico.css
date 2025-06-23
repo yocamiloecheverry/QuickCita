@@ -1,0 +1,52 @@
+/* Medico.css */
+
+.medico-navbar {
+  background: #f8fafc;
+  border-radius: 1.2rem;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.07);
+  padding: 1.2rem 2rem;
+  margin-bottom: 2rem;
+}
+
+.medico-navbar .nav-tabs .nav-link {
+  font-weight: 500;
+  color: #495057;
+  border: none;
+  border-radius: 2rem 2rem 0 0;
+  transition: background 0.2s, color 0.2s;
+  padding: 0.7rem 2rem;
+  margin-right: 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.medico-navbar .nav-tabs .nav-link.active {
+  background: #198754;
+  color: #fff;
+  box-shadow: 0 4px 16px rgba(25, 135, 84, 0.08);
+}
+
+.medico-navbar .nav-tabs .nav-link:hover:not(.active) {
+  background: #e7f1ff;
+  color: #198754;
+}
+
+.medico-content-card {
+  background: #fff;
+  border-radius: 1.2rem;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+  padding: 2rem;
+  margin-bottom: 2rem;
+}
+
+.medico-footer {
+  background: #f8fafc;
+  border-top: 1px solid #e9ecef;
+  padding: 1.2rem 0;
+  text-align: center;
+  color: #6c757d;
+  font-size: 1rem;
+  border-radius: 0 0 1.2rem 1.2rem;
+  box-shadow: 0 -2px 12px rgba(0, 0, 0, 0.03);
+}

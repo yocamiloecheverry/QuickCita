@@ -1,51 +1,61 @@
-// src/pages/Home.js
-import React from 'react';
-import { Container, Row, Col, Card, Button } from 'react-bootstrap';
-import { Link } from 'react-router-dom';
-import styled from 'styled-components';
-import heroImg from '../images/medical-hero-image-1024x576.jpg';
-
-const Wrapper = styled(Container).attrs({ fluid: true })`
-  width: 100%;
-  height: 100vh;
-  padding: 0 !important;
-  margin: 0 !important;
-`;
-
-const Img = styled.img`
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-`;
+import React from "react";
+import { Container, Row, Col, Card, Button } from "react-bootstrap";
+import { Link } from "react-router-dom";
+import heroImg from "../images/Background1.jpg";
+import logoImg from "../images/Logo.png"; 
+import "../styles/Home.css";
 
 export default function Home() {
   return (
-    <Wrapper className="d-flex">
-      <Row className="h-100 gx-0 w-100">
-        {/* Imagen totalmente a la izquierda */}
-        <Col md={6} className="p-0 h-100">
-          <Img src={heroImg} alt="Ilustración gestión citas" />
+    <Container fluid className="home-bg">
+      <Row className="gx-0 flex-grow-1 w-100">
+        {/* Imagen a la izquierda (oculta en mobile) */}
+        <Col md={6} className="hero-img-col d-none d-md-flex">
+          <img
+            src={heroImg}
+            alt="Ilustración gestión citas"
+            className="hero-img"
+          />
         </Col>
 
         {/* Bloque de bienvenida centrado */}
         <Col
+          xs={12}
           md={6}
           className="d-flex align-items-center justify-content-center p-0"
+          style={{ minHeight: "100vh" }}
         >
-          {/* Le quitamos h-100 y w-100 y le damos max-width */}
-          <Card className="border-0" style={{ width: '90%', maxWidth: '400px' }}>
+          <Card className="border-0 shadow-lg welcome-card">
             <Card.Body className="d-flex flex-column justify-content-center text-center">
-              <Card.Title as="h1" className="mb-3">
+              <img
+                src={logoImg}
+                alt="Logo QuickCita"
+                className="logo-img mx-auto"
+                draggable="false"
+              />
+              <Card.Title as="h1" className="mb-2 welcome-title">
                 Bienvenido a QuickCita
               </Card.Title>
-              <Card.Text className="mb-4">
-                Tu sistema de gestión de citas médicas
+              <Card.Text className="welcome-text">
+                Tu Salud, Tu Tiempo, Tu Cita en un clic
               </Card.Text>
-              <div className="d-flex justify-content-center gap-2">
-                <Button as={Link} to="/login" variant="primary">
+              <div className="d-flex justify-content-center gap-2 mt-3">
+                <Button
+                  as={Link}
+                  to="/login"
+                  size="lg"
+                  variant="primary"
+                  className="px-4 shadow-sm"
+                >
                   Iniciar Sesión
                 </Button>
-                <Button as={Link} to="/register" variant="outline-primary">
+                <Button
+                  as={Link}
+                  to="/register"
+                  size="lg"
+                  variant="outline-primary"
+                  className="px-4 shadow-sm"
+                >
                   Registro
                 </Button>
               </div>
@@ -53,6 +63,6 @@ export default function Home() {
           </Card>
         </Col>
       </Row>
-    </Wrapper>
+    </Container>
   );
 }

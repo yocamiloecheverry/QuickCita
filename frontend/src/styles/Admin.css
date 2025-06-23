@@ -1,0 +1,100 @@
+/* Admin.css */
+
+.approve-doctors-container {
+  max-width: 800px;
+  margin: 2rem auto;
+  padding: 2rem 1.5rem;
+  background: #fff;
+  border-radius: 1.2rem;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.07);
+}
+
+.approve-doctors-title {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #198754;
+  margin-bottom: 1.5rem;
+  text-align: center;
+}
+
+.approve-doctors-table th,
+.approve-doctors-table td {
+  vertical-align: middle !important;
+}
+
+.approve-doctors-table th {
+  background: #f8fafc;
+  color: #198754;
+  font-weight: 600;
+  border-top: none;
+}
+
+.approve-doctors-table tr {
+  transition: background 0.2s;
+}
+
+.approve-doctors-table tr:hover {
+  background: #e7f1ff;
+}
+
+.btn-approve {
+  background: #198754;
+  border: none;
+  color: #fff;
+  font-weight: 500;
+  border-radius: 0.7rem;
+  padding: 0.4rem 1.1rem;
+  transition: background 0.2s;
+}
+
+.btn-approve:hover {
+  background: #157347;
+}
+
+.btn-reject {
+  background: #dc3545;
+  border: none;
+  color: #fff;
+  font-weight: 500;
+  border-radius: 0.7rem;
+  padding: 0.4rem 1.1rem;
+  transition: background 0.2s;
+}
+
+.btn-reject:hover {
+  background: #b52a37;
+}
+
+/* Badges personalizados para roles */
+.badge {
+  font-size: 0.75rem;
+  padding: 0.4rem 0.8rem;
+  border-radius: 0.5rem;
+  font-weight: 500;
+}
+
+/* Select moderno */
+.modern-select {
+  border-radius: 0.5rem;
+  border: 1px solid #dee2e6;
+  transition: border-color 0.2s;
+}
+
+.modern-select:focus {
+  border-color: #198754;
+  box-shadow: 0 0 0 0.2rem rgba(25, 135, 84, 0.15);
+}
+
+/* Moderniza los headers de cards */
+.card-header h4 {
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+/* Moderniza los list group de alertas */
+.list-group-item {
+  font-size: 1.05rem;
+  border-radius: 0.5rem !important;
+  margin-bottom: 0.5rem;
+  border: 1px solid #f1f3f5;
+}

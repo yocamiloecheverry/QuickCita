@@ -1,9 +1,14 @@
 import React, { useState, useContext, useEffect } from "react";
 import { AuthContext } from "../context/AuthContext";
 import { searchDoctors } from "../services/doctorService";
-import { createAppointment, getAvailableSlots } from "../services/appointmentService";
+import {
+  createAppointment,
+  getAvailableSlots,
+} from "../services/appointmentService";
 import { getPerfilFilters } from "../services/filterService";
-import LogoutButton from "../components/LogoutButton";
+import AppNavbar from "../components/Navbar";
+import Footer from "../components/Footer";
+import "../App.css";
 import {
   Container,
   Form,
@@ -12,7 +17,7 @@ import {
   Card,
   Button,
   Spinner,
-  Modal
+  Modal,
 } from "react-bootstrap";
 
 export default function Dashboard() {
@@ -22,7 +27,7 @@ export default function Dashboard() {
   const [filters, setFilters] = useState({
     especialidad: "",
     ubicacion: "",
-    seguro_medico: ""
+    seguro_medico: "",
   });
 
   // Listas dinámicas de filtros
@@ -51,14 +56,14 @@ export default function Dashboard() {
         setUbicaciones(ubi);
         setSeguros(seg);
       })
-      .catch(err => console.error("Error cargando filtros:", err));
+      .catch((err) => console.error("Error cargando filtros:", err));
   }, []);
 
-  const handleFilterChange = e => {
-    setFilters(f => ({ ...f, [e.target.name]: e.target.value }));
+  const handleFilterChange = (e) => {
+    setFilters((f) => ({ ...f, [e.target.name]: e.target.value }));
   };
 
-  const handleSearch = async e => {
+  const handleSearch = async (e) => {
     e.preventDefault();
     setLoading(true);
     try {
@@ -68,13 +73,12 @@ export default function Dashboard() {
       // cargar slots para cada doctor
       const slotsMap = {};
       await Promise.all(
-        docs.map(async doc => {
+        docs.map(async (doc) => {
           const slots = await getAvailableSlots(doc.id_usuario);
           slotsMap[doc.id_usuario] = slots;
         })
       );
       setSlotsByDoctor(slotsMap);
-
     } catch (err) {
       console.error("Error buscando médicos:", err);
       alert(err.message || "Error al buscar médicos");
@@ -111,128 +115,158 @@ export default function Dashboard() {
   };
 
   return (
-    <Container className="py-5 d-flex flex-column">
-      <div className="d-flex mb-3 align-items-center">
-        <h2 className="me-auto">Buscar Médicos</h2>
-        <LogoutButton />
-      </div>
+    <>
+      <div className="app-layout">
+        <AppNavbar />
+        <div className="app-content">
+          <Container className="py-5 d-flex flex-column">
+            <Form onSubmit={handleSearch}>
+              <Row className="g-3">
+                {/* Especialidad */}
+                <Col md>
+                  <Form.Select
+                    name="especialidad"
+                    value={filters.especialidad}
+                    onChange={handleFilterChange}
+                    className="stylish-select"  
+                  >
+                    <option value="">-- Especialidad --</option>
+                    {especialidades.map((sp) => (
+                      <option key={sp} value={sp}>
+                        {sp}
+                      </option>
+                    ))}
+                  </Form.Select>
+                </Col>
 
-      <Form onSubmit={handleSearch}>
-        <Row className="g-3">
-          {/* Especialidad */}
-          <Col md>
-            <Form.Select
-              name="especialidad"
-              value={filters.especialidad}
-              onChange={handleFilterChange}
-            >
-              <option value="">-- Especialidad --</option>
-              {especialidades.map(sp => (
-                <option key={sp} value={sp}>{sp}</option>
-              ))}
-            </Form.Select>
-          </Col>
+                {/* Ubicación */}
+                <Col md>
+                  <Form.Select
+                    name="ubicacion"
+                    value={filters.ubicacion}
+                    onChange={handleFilterChange}
+                    className="stylish-select"
+                  >
+                    <option value="">-- Ubicación --</option>
+                    {ubicaciones.map((loc) => (
+                      <option key={loc} value={loc}>
+                        {loc}
+                      </option>
+                    ))}
+                  </Form.Select>
+                </Col>
 
-          {/* Ubicación */}
-          <Col md>
-            <Form.Select
-              name="ubicacion"
-              value={filters.ubicacion}
-              onChange={handleFilterChange}
-            >
-              <option value="">-- Ubicación --</option>
-              {ubicaciones.map(loc => (
-                <option key={loc} value={loc}>{loc}</option>
-              ))}
-            </Form.Select>
-          </Col>
+                {/* Seguro médico */}
+                <Col md>
+                  <Form.Select
+                    name="seguro_medico"
+                    value={filters.seguro_medico}
+                    onChange={handleFilterChange}
+                    className="stylish-select"
+                  >
+                    <option value="">-- Seguro médico --</option>
+                    {seguros.map((sg) => (
+                      <option key={sg} value={sg}>
+                        {sg}
+                      </option>
+                    ))}
+                  </Form.Select>
+                </Col>
 
-          {/* Seguro médico */}
-          <Col md>
-            <Form.Select
-              name="seguro_medico"
-              value={filters.seguro_medico}
-              onChange={handleFilterChange}
-            >
-              <option value="">-- Seguro médico --</option>
-              {seguros.map(sg => (
-                <option key={sg} value={sg}>{sg}</option>
-              ))}
-            </Form.Select>
-          </Col>
+                <Col md="auto">
+                  <Button type="submit" disabled={loading}>
+                    {loading ? (
+                      <Spinner animation="border" size="sm" />
+                    ) : (
+                      "Buscar"
+                    )}
+                  </Button>
+                </Col>
+              </Row>
+            </Form>
 
-          <Col md="auto">
-            <Button type="submit" disabled={loading}>
-              {loading ? <Spinner animation="border" size="sm" /> : "Buscar"}
-            </Button>
-          </Col>
-        </Row>
-      </Form>
+            <Row className="mt-4 g-3">
+              {doctors.map((doc) => (
+                <Col key={doc.id_usuario} xs={12} md={6} lg={4}>
+                  <Card className="h-100">
+                    <Card.Body>
+                      <Card.Title>{doc.nombre}</Card.Title>
+                      <Card.Text>
+                        <strong>Especialidad:</strong>{" "}
+                        {doc.PerfilMedico?.especialidad}
+                        <br />
+                        <strong>Ubicación:</strong>{" "}
+                        {doc.PerfilMedico?.ubicacion}
+                      </Card.Text>
 
-      <Row className="mt-4 g-3">
-        {doctors.map(doc => (
-          <Col key={doc.id_usuario} xs={12} md={6} lg={4}>
-            <Card className="h-100">
-              <Card.Body>
-                <Card.Title>{doc.nombre}</Card.Title>
-                <Card.Text>
-                  <strong>Especialidad:</strong> {doc.PerfilMedico?.especialidad}<br />
-                  <strong>Ubicación:</strong> {doc.PerfilMedico?.ubicacion}
-                </Card.Text>
-
-                {/* slots disponibles */}
-                <div style={{ maxHeight: 120, overflowY: 'auto' }}>
-                  {slotsByDoctor[doc.id_usuario]?.length > 0 ? (
-                    slotsByDoctor[doc.id_usuario].map(slot => (
-                      <div key={slot} className="d-flex justify-content-between align-items-center mb-1">
-                        <small>{new Date(slot).toLocaleString()}</small>
-                        <Button size="sm" onClick={() => openModal(doc, slot)}>
-                          Reservar
-                        </Button>
+                      {/* slots disponibles */}
+                      <div style={{ maxHeight: 120, overflowY: "auto" }}>
+                        {slotsByDoctor[doc.id_usuario]?.length > 0 ? (
+                          slotsByDoctor[doc.id_usuario].map((slot) => (
+                            <div
+                              key={slot}
+                              className="d-flex justify-content-between align-items-center mb-1"
+                            >
+                              <small>{new Date(slot).toLocaleString()}</small>
+                              <Button
+                                size="sm"
+                                onClick={() => openModal(doc, slot)}
+                              >
+                                Reservar
+                              </Button>
+                            </div>
+                          ))
+                        ) : (
+                          <p className="text-muted">
+                            No hay horarios disponibles
+                          </p>
+                        )}
                       </div>
-                    ))
-                  ) : (
-                    <p className="text-muted">No hay horarios disponibles</p>
-                  )}
-                </div>
-              </Card.Body>
-            </Card>
-          </Col>
-        ))}
-      </Row>
+                    </Card.Body>
+                  </Card>
+                </Col>
+              ))}
+            </Row>
 
-      {/* Modal de agendamiento */}
-      <Modal show={showModal} onHide={() => setShowModal(false)}>
-        <Modal.Header closeButton>
-          <Modal.Title>Agendar con {selectedDoctor?.nombre}</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          <Form.Group className="mb-3">
-            <Form.Label>Fecha y hora</Form.Label>
-            <Form.Control
-              type="text"
-              readOnly
-              value={new Date(fechaHora).toLocaleString()}
-            />
-          </Form.Group>
-          <Form.Group className="mb-3">
-            <Form.Label>Método de notificación</Form.Label>
-            <Form.Select value={notiMethod} onChange={e => setNotiMethod(e.target.value)}>
-              <option value="email">Email</option>
-              <option value="sms">SMS</option>
-              <option value="push">Push</option>
-            </Form.Select>
-          </Form.Group>
-        </Modal.Body>
-        <Modal.Footer>
-          <Button variant="secondary" onClick={() => setShowModal(false)}>
-            Cancelar
-          </Button>
-          <Button variant="primary" onClick={handleAppointment}>
-            Confirmar Cita
-          </Button>
-        </Modal.Footer>
-      </Modal>
-    </Container>
+            {/* Modal de agendamiento */}
+            <Modal show={showModal} onHide={() => setShowModal(false)}>
+              <Modal.Header closeButton>
+                <Modal.Title>Agendar con {selectedDoctor?.nombre}</Modal.Title>
+              </Modal.Header>
+              <Modal.Body>
+                <Form.Group className="mb-3">
+                  <Form.Label>Fecha y hora</Form.Label>
+                  <Form.Control
+                    type="text"
+                    readOnly
+                    value={new Date(fechaHora).toLocaleString()}
+                  />
+                </Form.Group>
+                <Form.Group className="mb-3">
+                  <Form.Label>Método de notificación</Form.Label>
+                  <Form.Select
+                    value={notiMethod}
+                    onChange={(e) => setNotiMethod(e.target.value)}
+                  >
+                    <option value="email">Email</option>
+                    <option value="sms">SMS</option>
+                    <option value="push">Push</option>
+                  </Form.Select>
+                </Form.Group>
+              </Modal.Body>
+              <Modal.Footer>
+                <Button variant="secondary" onClick={() => setShowModal(false)}>
+                  Cancelar
+                </Button>
+                <Button variant="primary" onClick={handleAppointment}>
+                  Confirmar Cita
+                </Button>
+              </Modal.Footer>
+            </Modal>
+          </Container>
+        </div>
+        <Footer />
+      </div>
+    </>
   );
 }

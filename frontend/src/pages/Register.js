@@ -1,84 +1,22 @@
-// src/pages/Register.js
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { registerUser, loginUser } from "../services/authService"; // ← importamos loginUser
-import styled from "styled-components";
-import { InputGroup, Form } from "react-bootstrap";
+import { registerUser, loginUser } from "../services/authService";
+import {
+  Container,
+  Row,
+  Col,
+  Card,
+  Form,
+  Button,
+  InputGroup,
+  Alert,
+} from "react-bootstrap";
+import { FaEye, FaEyeSlash, FaUserPlus } from "react-icons/fa";
+import registerImg from "../images/istockphoto-1249742518-612x612.jpg";
+import "../styles/Auth.css";
 
 // Regex para validar contraseña
 const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\W).{8,}$/;
-
-const Container = styled.div`
-  max-width: 400px;
-  margin: 3rem auto;
-  padding: 2rem;
-  background: white;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-`;
-const Title = styled.h2`
-  text-align: center;
-  margin-bottom: 1.5rem;
-`;
-const StyledForm = styled(Form)`
-  display: flex;
-  flex-direction: column;
-`;
-const Input = styled(Form.Control)`
-  margin-bottom: 1rem;
-  padding: 0.5rem;
-  font-size: 1rem;
-`;
-const StyledSelect = styled(Form.Select)`
-  margin-bottom: 1rem;
-  padding: 0.5rem;
-  font-size: 1rem;
-`;
-const StyledButton = styled.button`
-  padding: 0.75rem;
-  font-size: 1rem;
-  background: #007bff;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  &:hover { background: #0056b3; }
-`;
-const SuccessMessage = styled.div`
-  margin-bottom: 1rem;
-  padding: 0.75rem;
-  text-align: center;
-  color: #155724;
-  background: #d4edda;
-  border: 1px solid #c3e6cb;
-  border-radius: 4px;
-`;
-const ErrorMessage = styled.div`
-  margin-bottom: 1rem;
-  padding: 0.75rem;
-  text-align: center;
-  color: #721c24;
-  background: #f8d7da;
-  border: 1px solid #f5c6cb;
-  border-radius: 4px;
-`;
-
-const EyeToggle = styled(InputGroup.Text)`
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0.5rem;
-  background: white;
-  border-left: 0;
-  border-top-right-radius: .25rem;
-  border-bottom-right-radius: .25rem;
-  cursor: pointer;
-`;
-
-const PasswordField = styled(Form.Control)`
-  border-top-right-radius: 0;
-  border-bottom-right-radius: 0;
-`;
 
 export default function Register() {
   const navigate = useNavigate();
@@ -97,7 +35,7 @@ export default function Register() {
   // credenciales del admin existente
   const [adminCreds, setAdminCreds] = useState({
     adminEmail: "",
-    adminPassword: ""
+    adminPassword: "",
   });
 
   const [success, setSuccess] = useState("");
@@ -105,24 +43,27 @@ export default function Register() {
   const [submitting, setSubmitting] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
+  const [showAdminPassword, setShowAdminPassword] = useState(false);
 
-  const onChange = e => {
+  const onChange = (e) => {
     const { name, value } = e.target;
     if (name === "adminEmail" || name === "adminPassword") {
-      setAdminCreds(c => ({ ...c, [name]: value }));
+      setAdminCreds((c) => ({ ...c, [name]: value }));
     } else {
-      setForm(f => ({ ...f, [name]: value }));
+      setForm((f) => ({ ...f, [name]: value }));
     }
     setError("");
   };
 
-  const onSubmit = async e => {
+  const onSubmit = async (e) => {
     e.preventDefault();
     setError("");
 
     // 1) Validar contraseña
     if (!passwordRegex.test(form.password)) {
-      setError("La contraseña debe tener mínimo 8 caracteres, al menos una mayúscula, una minúscula y un carácter especial.");
+      setError(
+        "La contraseña debe tener mínimo 8 caracteres, al menos una mayúscula, una minúscula y un carácter especial."
+      );
       return;
     }
     if (form.password !== form.confirmPassword) {
@@ -135,15 +76,16 @@ export default function Register() {
     // 2) Si quieren crear un Admin, primero autenticamos al Admin existente
     if (form.rol === "administrador") {
       if (!adminCreds.adminEmail || !adminCreds.adminPassword) {
-        setError("Debes ingresar email y contraseña de un Administrador existente.");
+        setError(
+          "Debes ingresar email y contraseña de un Administrador existente."
+        );
         setSubmitting(false);
         return;
       }
       try {
-        // loginUser lanza error si falla
         await loginUser({
           email: adminCreds.adminEmail,
-          password: adminCreds.adminPassword
+          password: adminCreds.adminPassword,
         });
       } catch (err) {
         setError(err.message || "Autenticación de Admin fallida.");
@@ -160,10 +102,12 @@ export default function Register() {
         telefono: form.telefono,
         password: form.password,
         red_social: form.red_social,
-        rol: form.rol
+        rol: form.rol,
       });
 
-      setSuccess("Registro creado con éxito. En breve serás redirigido al inicio de sesión...");
+      setSuccess(
+        "Registro creado con éxito. En breve serás redirigido al inicio de sesión..."
+      );
       setTimeout(() => navigate("/login", { replace: true }), 3000);
     } catch (err) {
       setError(err.message || "Ocurrió un error al registrar.");
@@ -172,122 +116,245 @@ export default function Register() {
   };
 
   return (
-    <Container>
-      <Title>Registro de Usuario</Title>
-      {error && <ErrorMessage>{error}</ErrorMessage>}
-      {success && <SuccessMessage>{success}</SuccessMessage>}
+    <Container fluid className="auth-container">
+      <Container>
+        <Row className="justify-content-center">
+          <Col lg={10} xl={8}>
+            <Card className="auth-card">
+              <Row className="g-0">
+                {/* Imagen lateral */}
+                <Col lg={5} className="auth-image d-none d-lg-flex">
+                  <img
+                    src={registerImg}
+                    alt="Registro QuickCita"
+                    className="img-fluid"
+                  />
+                </Col>
 
-      {!success && (
-        <StyledForm onSubmit={onSubmit}>
-          <Input
-            name="nombre"
-            placeholder="Nombre completo"
-            value={form.nombre}
-            onChange={onChange}
-            disabled={submitting}
-            required
-          />
-          <Input
-            name="email"
-            type="email"
-            placeholder="Correo electrónico"
-            value={form.email}
-            onChange={onChange}
-            disabled={submitting}
-            required
-          />
-          <Input
-            name="telefono"
-            placeholder="Teléfono"
-            value={form.telefono}
-            onChange={onChange}
-            disabled={submitting}
-            required
-          />
+                {/* Formulario */}
+                <Col lg={7}>
+                  <div className="auth-form-container">
+                    <div className="text-center mb-4">
+                      <FaUserPlus size={48} className="text-primary mb-3" />
+                      <h2 className="auth-title">Crear Cuenta</h2>
+                      <p className="auth-subtitle">
+                        Únete a QuickCita y gestiona tus citas médicas
+                      </p>
+                    </div>
 
-          <InputGroup className="mb-3">
-            <PasswordField
-              type={showPassword ? "text" : "password"}
-              name="password"
-              placeholder="Contraseña"
-              value={form.password}
-              onChange={onChange}
-              disabled={submitting}
-              required
-            />
-            <EyeToggle onClick={() => setShowPassword(v => !v)}>
-              {showPassword ? "🙈" : "👁️"}
-            </EyeToggle>
-          </InputGroup>
+                    {error && (
+                      <Alert className="auth-alert auth-alert-danger">
+                        {error}
+                      </Alert>
+                    )}
 
-          <InputGroup className="mb-3">
-            <PasswordField
-              type={showConfirm ? "text" : "password"}
-              name="confirmPassword"
-              placeholder="Confirmar contraseña"
-              value={form.confirmPassword}
-              onChange={onChange}
-              disabled={submitting}
-              required
-            />
-            <EyeToggle onClick={() => setShowConfirm(v => !v)}>
-              {showConfirm ? "🙈" : "👁️"}
-            </EyeToggle>
-          </InputGroup>
+                    {success && (
+                      <Alert className="auth-alert auth-alert-success">
+                        {success}
+                      </Alert>
+                    )}
 
-          <Input
-            name="red_social"
-            placeholder="Red social (opcional)"
-            value={form.red_social}
-            onChange={onChange}
-            disabled={submitting}
-          />
+                    {!success && (
+                      <Form onSubmit={onSubmit}>
+                        <Row>
+                          <Col md={6}>
+                            <Form.Group className="mb-3">
+                              <Form.Control
+                                name="nombre"
+                                placeholder="Nombre completo"
+                                value={form.nombre}
+                                onChange={onChange}
+                                disabled={submitting}
+                                required
+                                className="modern-input"
+                              />
+                            </Form.Group>
+                          </Col>
+                          <Col md={6}>
+                            <Form.Group className="mb-3">
+                              <Form.Control
+                                name="telefono"
+                                placeholder="Teléfono"
+                                value={form.telefono}
+                                onChange={onChange}
+                                disabled={submitting}
+                                required
+                                className="modern-input"
+                              />
+                            </Form.Group>
+                          </Col>
+                        </Row>
 
-          <StyledSelect
-            name="rol"
-            value={form.rol}
-            onChange={onChange}
-            disabled={submitting}
-            required
-          >
-            <option value="paciente">Paciente</option>
-            <option value="medico">Médico</option>
-            <option value="administrador">Administrador</option>
-          </StyledSelect>
+                        <Form.Group className="mb-3">
+                          <Form.Control
+                            name="email"
+                            type="email"
+                            placeholder="Correo electrónico"
+                            value={form.email}
+                            onChange={onChange}
+                            disabled={submitting}
+                            required
+                            className="modern-input"
+                          />
+                        </Form.Group>
 
-          {form.rol === "administrador" && (
-            <>
-              <hr />
-              <Input
-                name="adminEmail"
-                type="email"
-                placeholder="Admin existente: Email"
-                value={adminCreds.adminEmail}
-                onChange={onChange}
-                disabled={submitting}
-                required
-              />
-              <Input
-                name="adminPassword"
-                type="password"
-                placeholder="Admin existente: Contraseña"
-                value={adminCreds.adminPassword}
-                onChange={onChange}
-                disabled={submitting}
-                required
-              />
-            </>
-          )}
+                        <Row>
+                          <Col md={6}>
+                            <Form.Group className="mb-3">
+                              <InputGroup>
+                                <Form.Control
+                                  type={showPassword ? "text" : "password"}
+                                  name="password"
+                                  placeholder="Contraseña"
+                                  value={form.password}
+                                  onChange={onChange}
+                                  disabled={submitting}
+                                  required
+                                  className="modern-input password-input"
+                                />
+                                <InputGroup.Text
+                                  className="password-toggle"
+                                  onClick={() => setShowPassword(!showPassword)}
+                                >
+                                  {showPassword ? <FaEyeSlash /> : <FaEye />}
+                                </InputGroup.Text>
+                              </InputGroup>
+                            </Form.Group>
+                          </Col>
+                          <Col md={6}>
+                            <Form.Group className="mb-3">
+                              <InputGroup>
+                                <Form.Control
+                                  type={showConfirm ? "text" : "password"}
+                                  name="confirmPassword"
+                                  placeholder="Confirmar contraseña"
+                                  value={form.confirmPassword}
+                                  onChange={onChange}
+                                  disabled={submitting}
+                                  required
+                                  className="modern-input password-input"
+                                />
+                                <InputGroup.Text
+                                  className="password-toggle"
+                                  onClick={() => setShowConfirm(!showConfirm)}
+                                >
+                                  {showConfirm ? <FaEyeSlash /> : <FaEye />}
+                                </InputGroup.Text>
+                              </InputGroup>
+                            </Form.Group>
+                          </Col>
+                        </Row>
 
-          <StyledButton type="submit" disabled={submitting}>
-            {submitting ? "Procesando..." : "Registrarse"}
-          </StyledButton>
-        </StyledForm>
-      )}
+                        <Row>
+                          <Col md={6}>
+                            <Form.Group className="mb-3">
+                              <Form.Control
+                                name="red_social"
+                                placeholder="Red social (opcional)"
+                                value={form.red_social}
+                                onChange={onChange}
+                                disabled={submitting}
+                                className="modern-input"
+                              />
+                            </Form.Group>
+                          </Col>
+                          <Col md={6}>
+                            <Form.Group className="mb-3">
+                              <Form.Select
+                                name="rol"
+                                value={form.rol}
+                                onChange={onChange}
+                                disabled={submitting}
+                                required
+                                className="modern-select"
+                              >
+                                <option value="paciente">Paciente</option>
+                                <option value="medico">Médico</option>
+                                <option value="administrador">
+                                  Administrador
+                                </option>
+                              </Form.Select>
+                            </Form.Group>
+                          </Col>
+                        </Row>
 
-      <p style={{ marginTop: '1rem', textAlign: 'center' }}>
-        ¿Ya tienes una cuenta? <Link to="/login">Inicia sesión aquí</Link>
-      </p>
+                        {form.rol === "administrador" && (
+                          <div className="admin-section">
+                            <h6>Verificación de Administrador</h6>
+                            <Row>
+                              <Col md={6}>
+                                <Form.Group className="mb-3">
+                                  <Form.Control
+                                    name="adminEmail"
+                                    type="email"
+                                    placeholder="Email del admin existente"
+                                    value={adminCreds.adminEmail}
+                                    onChange={onChange}
+                                    disabled={submitting}
+                                    required
+                                    className="modern-input"
+                                  />
+                                </Form.Group>
+                              </Col>
+                              <Col md={6}>
+                                <Form.Group className="mb-3">
+                                  <InputGroup>
+                                    <Form.Control
+                                      type={
+                                        showAdminPassword ? "text" : "password"
+                                      }
+                                      name="adminPassword"
+                                      placeholder="Contraseña del admin"
+                                      value={adminCreds.adminPassword}
+                                      onChange={onChange}
+                                      disabled={submitting}
+                                      required
+                                      className="modern-input password-input"
+                                    />
+                                    <InputGroup.Text
+                                      className="password-toggle"
+                                      onClick={() =>
+                                        setShowAdminPassword(!showAdminPassword)
+                                      }
+                                    >
+                                      {showAdminPassword ? (
+                                        <FaEyeSlash />
+                                      ) : (
+                                        <FaEye />
+                                      )}
+                                    </InputGroup.Text>
+                                  </InputGroup>
+                                </Form.Group>
+                              </Col>
+                            </Row>
+                          </div>
+                        )}
+
+                        <Button
+                          type="submit"
+                          disabled={submitting}
+                          className="auth-btn auth-btn-primary w-100 mb-3"
+                        >
+                          {submitting ? "Procesando..." : "Crear Cuenta"}
+                        </Button>
+                      </Form>
+                    )}
+
+                    <div className="text-center">
+                      <span className="text-muted">
+                        ¿Ya tienes una cuenta?{" "}
+                      </span>
+                      <Link to="/login" className="auth-link">
+                        Inicia sesión aquí
+                      </Link>
+                    </div>
+                  </div>
+                </Col>
+              </Row>
+            </Card>
+          </Col>
+        </Row>
+      </Container>
     </Container>
   );
 }

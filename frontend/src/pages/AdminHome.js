@@ -1,41 +1,20 @@
-// src/pages/AdminHome.js
-import React from 'react'
-import { Nav, Row, Col } from 'react-bootstrap'
-import { NavLink, Outlet } from 'react-router-dom'
-import LogoutButton from '../components/LogoutButton'
+import React from "react";
+import { Nav, Row, Col, Container, Card } from "react-bootstrap";
+import { NavLink, Outlet } from "react-router-dom";
+import AppNavbar from "../components/Navbar";
 
 export default function AdminHome() {
   return (
-    <>
-      <Row className="align-items-center mb-4">
-        <Col>
-          <Nav variant="tabs">
-            <Nav.Item>
-              <Nav.Link
-                as={NavLink}
-                to="/admin"       // ruta absoluta al index de Admin
-                end               // marca activo solo en /admin exacto
-              >
-                Aprobar Médicos
-              </Nav.Link>
-            </Nav.Item>
-            <Nav.Item>
-              <Nav.Link
-                as={NavLink}
-                to="/admin/configurar"  // ruta absoluta a configurar
-              >
-                Configurar Roles
-              </Nav.Link>
-            </Nav.Item>
-          </Nav>
-        </Col>
-        <Col xs="auto">
-          <LogoutButton />
-        </Col>
-      </Row>
+    <Container className="py-4">
+      <Card className="shadow-sm mb-4 border-0">
+        <AppNavbar />
+      </Card>
 
-      {/* Aquí renderiza la subruta correspondiente */}
-      <Outlet />
-    </>
-  )
+      <Card className="shadow-sm border-0">
+        <Card.Body>
+          <Outlet />
+        </Card.Body>
+      </Card>
+    </Container>
+  );
 }

@@ -1,0 +1,85 @@
+.home-bg {
+  min-height: 100vh;
+  background: linear-gradient(120deg, #f8fafc 60%, #e7f1ff 100%);
+  display: flex;
+  align-items: stretch;
+  padding: 0;
+}
+
+.hero-img-col {
+  background: linear-gradient(120deg, #e7f1ff 60%, #f8fafc 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+
+.hero-img {
+  height: 100vh;
+  object-fit: cover;
+  filter: brightness(0.93) saturate(1.1);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.10);
+  transition: filter 0.3s;
+}
+
+.hero-img:hover {
+  filter: brightness(1) saturate(1.2);
+}
+
+.welcome-card {
+  background: rgba(255,255,255,0.97);
+  border-radius: 2rem;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.10);
+  padding: 2.5rem 2rem;
+  animation: fadeInUp 0.8s cubic-bezier(.39,.575,.565,1) both;
+  max-width: 440px;
+  width: 100%;
+}
+
+@keyframes fadeInUp {
+  0% {
+    opacity: 0;
+    transform: translateY(40px);
+  }
+  100% {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.welcome-title {
+  font-size: 2.3rem;
+  font-weight: 700;
+  color: #0d6efd;
+  letter-spacing: -1px;
+}
+
+.welcome-text {
+  font-size: 1.15rem;
+  color: #495057;
+  margin-bottom: 1.5rem;
+}
+
+.logo-img {
+  width: 120px;
+  margin-bottom: 1.2rem;
+  margin-top: -0.5rem;
+}
+
+@media (max-width: 767px) {
+  .home-bg {
+    flex-direction: column;
+  }
+  .hero-img-col {
+    display: none;
+  }
+  .welcome-card {
+    margin: 2.5rem auto;
+    border-radius: 1.2rem;
+    padding: 2rem 1rem;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.10);
+  }
+  .logo-img {
+    width: 140px;
+  }
+}

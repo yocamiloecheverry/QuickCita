@@ -1,14 +1,19 @@
 import React, { useState, useContext } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
-import { InputGroup } from "react-bootstrap";
-import {
-  Container,
-  Card,
-  Form,
-  Button,
-  Alert
+import { 
+  Container, 
+  Row, 
+  Col, 
+  Card, 
+  Form, 
+  Button, 
+  InputGroup,
+  Alert 
 } from "react-bootstrap";
+import { FaEye, FaEyeSlash, FaSignInAlt, FaStethoscope } from "react-icons/fa";
+import loginImg from '../images/360_F_541445149_jgB6YUw2O22FPldJ8DXOvzTuSblq8GJ7.jpg'; // Agrega una imagen aquí
+import '../styles/Auth.css';
 
 export default function Login() {
   const { handleLogin } = useContext(AuthContext);
@@ -21,6 +26,7 @@ export default function Login() {
   const handleChange = e => {
     const { name, value } = e.target;
     setCredentials(prev => ({ ...prev, [name]: value }));
+    setError(""); // Limpiar error al escribir
   };
 
   const handleSubmit = async e => {
@@ -44,54 +50,110 @@ export default function Login() {
   };
 
   return (
-    <Container className="d-flex justify-content-center align-items-center vh-100 bg-light">
-      <Card style={{ maxWidth: '400px', width: '100%' }} className="shadow-sm">
-        <Card.Body>
-          <Card.Title className="text-center mb-4">Iniciar Sesión</Card.Title>
-          {error && <Alert variant="danger">{error}</Alert>}
-          <Form onSubmit={handleSubmit}>
-            <Form.Group className="mb-3" controlId="formEmail">
-              <Form.Label>Correo electrónico</Form.Label>
-              <Form.Control
-                type="email"
-                placeholder="Ingresa tu email"
-                name="email"
-                value={credentials.email}
-                onChange={handleChange}
-                required
-                disabled={loading}
-              />
-            </Form.Group>
+    <Container fluid className="auth-container">
+      <Container>
+        <Row className="justify-content-center">
+          <Col lg={10} xl={8}>
+            <Card className="auth-card">
+              <Row className="g-0">
+                {/* Imagen lateral */}
+                <Col lg={5} className="auth-image d-none d-lg-flex">
+                  <img 
+                    src={loginImg} 
+                    alt="Iniciar sesión QuickCita" 
+                    className="img-fluid"
+                  />
+                </Col>
 
-            <Form.Group className="mb-3" controlId="formPassword">
-              <Form.Label>Contraseña</Form.Label>
-              <InputGroup>
-                <Form.Control
-                  type={showPassword ? "text" : "password"}
-                  name="password"
-                  value={credentials.password}
-                  onChange={handleChange}
-                  required
-                  disabled={loading}
-                />
-                <InputGroup.Text
-                  style={{ cursor: "pointer" }}
-                  onClick={() => setShowPassword(v => !v)}
-                >
-                  {showPassword ? "🙈" : "👁️"}
-                </InputGroup.Text>
-              </InputGroup>
-            </Form.Group>
+                {/* Formulario */}
+                <Col lg={7}>
+                  <div className="auth-form-container">
+                    <div className="text-center mb-4">
+                      <FaStethoscope size={48} className="text-primary mb-3" />
+                      <h2 className="auth-title">Bienvenido de vuelta</h2>
+                      <p className="auth-subtitle">Inicia sesión en tu cuenta de QuickCita</p>
+                    </div>
 
-            <Button variant="primary" type="submit" className="w-100" disabled={loading}>
-              {loading ? 'Ingresando...' : 'Ingresar'}
-            </Button>
-          </Form>
-          <div className="mt-3 text-center">
-            ¿No tienes una cuenta? <Link to="/register">Regístrate aquí</Link>
-          </div>
-        </Card.Body>
-      </Card>
+                    {error && (
+                      <Alert className="auth-alert auth-alert-danger">
+                        {error}
+                      </Alert>
+                    )}
+
+                    <Form onSubmit={handleSubmit}>
+                      <Form.Group className="mb-3">
+                        <Form.Label className="fw-semibold text-muted mb-2">
+                          Correo electrónico
+                        </Form.Label>
+                        <Form.Control
+                          type="email"
+                          placeholder="Ingresa tu email"
+                          name="email"
+                          value={credentials.email}
+                          onChange={handleChange}
+                          required
+                          disabled={loading}
+                          className="modern-input"
+                        />
+                      </Form.Group>
+
+                      <Form.Group className="mb-4">
+                        <Form.Label className="fw-semibold text-muted mb-2">
+                          Contraseña
+                        </Form.Label>
+                        <InputGroup>
+                          <Form.Control
+                            type={showPassword ? "text" : "password"}
+                            placeholder="Ingresa tu contraseña"
+                            name="password"
+                            value={credentials.password}
+                            onChange={handleChange}
+                            required
+                            disabled={loading}
+                            className="modern-input password-input"
+                          />
+                          <InputGroup.Text
+                            className="password-toggle"
+                            onClick={() => setShowPassword(!showPassword)}
+                          >
+                            {showPassword ? <FaEyeSlash /> : <FaEye />}
+                          </InputGroup.Text>
+                        </InputGroup>
+                      </Form.Group>
+
+                      <Button 
+                        type="submit" 
+                        disabled={loading}
+                        className="auth-btn auth-btn-primary w-100 mb-4"
+                      >
+                        <FaSignInAlt className="me-2" />
+                        {loading ? 'Ingresando...' : 'Iniciar Sesión'}
+                      </Button>
+                    </Form>
+
+                    <div className="text-center">
+                      <span className="text-muted">¿No tienes una cuenta? </span>
+                      <Link to="/register" className="auth-link">
+                        Regístrate aquí
+                      </Link>
+                    </div>
+
+                    {/* Información adicional */}
+                    <div className="mt-4 pt-3 border-top">
+                      <div className="text-center">
+                        <small className="text-muted">
+                          ¿Olvidaste tu contraseña? 
+                          <a href="#" className="auth-link ms-1">Recuperar aquí</a>
+                        </small>
+                      </div>
+                    </div>
+                  </div>
+                </Col>
+              </Row>
+            </Card>
+          </Col>
+        </Row>
+      </Container>
     </Container>
   );
 }
