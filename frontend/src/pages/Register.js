@@ -25,7 +25,7 @@ export default function Register() {
   const [form, setForm] = useState({
     nombre: "",
     email: "",
-    telefono: "",
+    telefono: "+57",
     password: "",
     confirmPassword: "",
     red_social: "",
@@ -174,11 +174,18 @@ export default function Register() {
                             <Form.Group className="mb-3">
                               <Form.Control
                                 name="telefono"
-                                placeholder="Teléfono"
-                                value={form.telefono}
-                                onChange={onChange}
-                                disabled={submitting}
+                                type="tel"
+                                value={form.telefono.replace("+57", "")}
+                                onChange={(e) =>
+                                  setForm((f) => ({
+                                    ...f,
+                                    telefono:
+                                      "+57" + e.target.value.replace(/\D/g, ""), // Solo números
+                                  }))
+                                }
                                 required
+                                placeholder="3001234567"
+                                maxLength={10}
                                 className="modern-input"
                               />
                             </Form.Group>

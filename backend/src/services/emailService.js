@@ -1,18 +1,53 @@
-const nodemailer = require('nodemailer');
-require('dotenv').config();
+// backend/src/services/emailService.js
+const nodemailer = require("nodemailer");
 
+// Configuración del transporter (usando Gmail como ejemplo)
 const transporter = nodemailer.createTransport({
-  host: process.env.EMAIL_HOST,
-  port: parseInt(process.env.EMAIL_PORT),
-  secure: false,               // true si usas 465
+  service: "gmail", // o 'outlook', 'yahoo', etc.
   auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS,
+    user: process.env.EMAIL_USER, // tu email
+    pass: process.env.EMAIL_PASS, // tu contraseña de aplicación
   },
 });
 
-async function sendEmail({ to, subject, text, html }) {
-  return transporter.sendMail({ from: process.env.EMAIL_USER, to, subject, text, html });
-}
+// Función para enviar email
+const sendEmail = async ({ to, subject, text, html }) => {
+  try {
+    const mailOptions = {
+      from: `"QuickCita" <${process.env.EMAIL_USER}>`,
+      to,
+      subject,
+      text,
+      html:
+        html ||
+        `<div style="font-family: Arial, sans-serif;">${text.replace(
+          /\n/g,
+          "<br>"
+        )}</div>`,
+    };
 
-module.exports = { sendEmail };
+    const info = await transporter.sendMail(mailOptions);
+    console.log("Email enviado exitosamente:", info.messageId);
+    return { success: true, messageId: info.messageId };
+  } catch (error) {
+    console.error("Error al enviar email:", error);
+    return { success: false, error: error.message };
+  }
+};
+
+// Función para verificar la configuración
+const verifyEmailConfig = async () => {
+  try {
+    await transporter.verify();
+    console.log("✅ Configuración de email verificada correctamente");
+    return true;
+  } catch (error) {
+    console.error("❌ Error en configuración de email:", error);
+    return false;
+  }
+};
+
+module.exports = {
+  sendEmail,
+  verifyEmailConfig,
+};

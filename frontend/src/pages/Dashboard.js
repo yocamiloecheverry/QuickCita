@@ -8,6 +8,8 @@ import {
 import { getPerfilFilters } from "../services/filterService";
 import AppNavbar from "../components/Navbar";
 import Footer from "../components/Footer";
+import CustomAlert from "../components/CustomAlert";
+import CustomModal from "../components/CustomModal";
 import "../App.css";
 import {
   Container,
@@ -48,6 +50,41 @@ export default function Dashboard() {
   const [fechaHora, setFechaHora] = useState("");
   const [notiMethod, setNotiMethod] = useState("email");
 
+  // Estados para alertas y modales personalizados
+  const [alert, setAlert] = useState({
+    show: false,
+    message: "",
+    variant: "info",
+  });
+  const [modal, setModal] = useState({
+    show: false,
+    title: "",
+    body: "",
+    onConfirm: null,
+  });
+
+  // Funciones para manejar alertas y modales
+  const showAlert = (message, variant = "info") => {
+    setAlert({ show: true, message, variant });
+    setTimeout(
+      () => setAlert({ show: false, message: "", variant: "info" }),
+      4000
+    );
+  };
+
+  const showConfirmModal = ({ title, body, onConfirm }) => {
+    setModal({ show: true, title, body, onConfirm });
+  };
+
+  const handleModalConfirm = () => {
+    if (modal.onConfirm) modal.onConfirm();
+    setModal({ show: false, title: "", body: "", onConfirm: null });
+  };
+
+  const handleModalCancel = () => {
+    setModal({ show: false, title: "", body: "", onConfirm: null });
+  };
+
   // Cargar valores de filtros desde el backend
   useEffect(() => {
     getPerfilFilters()
@@ -56,7 +93,10 @@ export default function Dashboard() {
         setUbicaciones(ubi);
         setSeguros(seg);
       })
-      .catch((err) => console.error("Error cargando filtros:", err));
+      .catch((err) => {
+        console.error("Error cargando filtros:", err);
+        showAlert("Error al cargar los filtros de búsqueda", "danger");
+      });
   }, []);
 
   const handleFilterChange = (e) => {
@@ -70,6 +110,15 @@ export default function Dashboard() {
       const docs = await searchDoctors(filters);
       setDoctors(docs);
 
+      if (docs.length === 0) {
+        showAlert(
+          "No se encontraron médicos con los filtros seleccionados",
+          "warning"
+        );
+        setSlotsByDoctor({});
+        return;
+      }
+
       // cargar slots para cada doctor
       const slotsMap = {};
       await Promise.all(
@@ -79,9 +128,10 @@ export default function Dashboard() {
         })
       );
       setSlotsByDoctor(slotsMap);
+      showAlert(`Se encontraron ${docs.length} médicos disponibles`, "success");
     } catch (err) {
       console.error("Error buscando médicos:", err);
-      alert(err.message || "Error al buscar médicos");
+      showAlert(err.message || "Error al buscar médicos", "danger");
     } finally {
       setLoading(false);
     }
@@ -95,9 +145,21 @@ export default function Dashboard() {
 
   const handleAppointment = async () => {
     if (!fechaHora) {
-      alert("Por favor selecciona fecha y hora");
+      showAlert("Por favor selecciona fecha y hora", "warning");
       return;
     }
+
+    // Mostrar modal de confirmación
+    showConfirmModal({
+      title: "Confirmar cita médica",
+      body: `¿Estás seguro de que deseas agendar una cita con Dr(a). ${
+        selectedDoctor?.nombre
+      } para el ${new Date(fechaHora).toLocaleString()}?`,
+      onConfirm: () => confirmAppointment(),
+    });
+  };
+
+  const confirmAppointment = async () => {
     try {
       await createAppointment({
         id_paciente: user.id_usuario,
@@ -106,16 +168,46 @@ export default function Dashboard() {
         metodo_notificacion: notiMethod,
         seguro_medico: selectedDoctor.PerfilMedico?.seguro_medico || "",
       });
-      alert("Cita agendada con éxito");
+      showAlert(
+        "¡Cita agendada exitosamente! Recibirás una notificación de confirmación.",
+        "success"
+      );
       setShowModal(false);
+
+      // Actualizar slots disponibles para ese médico
+      const updatedSlots = await getAvailableSlots(selectedDoctor.id_usuario);
+      setSlotsByDoctor((prev) => ({
+        ...prev,
+        [selectedDoctor.id_usuario]: updatedSlots,
+      }));
     } catch (err) {
       console.error("Error agendando cita:", err);
-      alert(err.message || "Error al agendar cita");
+      showAlert(
+        err.message || "Error al agendar la cita. Intenta nuevamente.",
+        "danger"
+      );
     }
   };
 
   return (
     <>
+      {/* Alertas personalizadas */}
+      <CustomAlert
+        show={alert.show}
+        message={alert.message}
+        variant={alert.variant}
+        onClose={() => setAlert({ show: false, message: "", variant: "info" })}
+      />
+
+      {/* Modal personalizado */}
+      <CustomModal
+        show={modal.show}
+        title={modal.title}
+        body={modal.body}
+        onConfirm={handleModalConfirm}
+        onCancel={handleModalCancel}
+      />
+
       <div className="app-layout">
         <AppNavbar />
         <div className="app-content">
@@ -128,7 +220,7 @@ export default function Dashboard() {
                     name="especialidad"
                     value={filters.especialidad}
                     onChange={handleFilterChange}
-                    className="stylish-select"  
+                    className="stylish-select"
                   >
                     <option value="">-- Especialidad --</option>
                     {especialidades.map((sp) => (
@@ -250,7 +342,7 @@ export default function Dashboard() {
                   >
                     <option value="email">Email</option>
                     <option value="sms">SMS</option>
-                    <option value="push">Push</option>
+                    <option value="ambos">Email y SMS</option>
                   </Form.Select>
                 </Form.Group>
               </Modal.Body>
