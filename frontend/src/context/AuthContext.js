@@ -1,6 +1,7 @@
 import React, { createContext, useReducer } from "react";
 import { loginUser, logoutUser } from "../services/authService";
 import { jwtDecode } from "jwt-decode";
+import api from "../services/api";
 
 const initialState = {
   isAuthenticated: !!localStorage.getItem("token"),
@@ -30,9 +31,18 @@ export const AuthProvider = ({ children }) => {
 
       // Decodificamos el JWT para extraer id_usuario y rol
       const decoded = jwtDecode(token);
+      const id_usuario = decoded.id_usuario;
+
+      const perfilResponse = await api.get(`/usuarios/profile/${id_usuario}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      const perfil = perfilResponse.data;
+
+      console.log(perfil);
       // decoded tiene { id_usuario, rol, iat, exp }
-      dispatch({ type: "LOGIN_SUCCESS", payload: decoded });
-      return decoded; // Retornamos el usuario decodificado
+      dispatch({ type: "LOGIN_SUCCESS", payload: perfil });
+      return perfil; // Retornamos el usuario decodificado
     } catch (err) {
       console.error("Error al iniciar sesión:", err);
       throw err;
