@@ -103,6 +103,7 @@ export default function Dashboard() {
     setFilters((f) => ({ ...f, [e.target.name]: e.target.value }));
   };
 
+  // Manejar búsqueda de médicos
   const handleSearch = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -142,7 +143,8 @@ export default function Dashboard() {
     setFechaHora(slot);
     setShowModal(true);
   };
-
+  
+  // Manejar agendamiento de cita
   const handleAppointment = async () => {
     if (!fechaHora) {
       showAlert("Por favor selecciona fecha y hora", "warning");
@@ -159,6 +161,7 @@ export default function Dashboard() {
     });
   };
 
+  // Confirmar agendamiento de cita
   const confirmAppointment = async () => {
     try {
       await createAppointment({

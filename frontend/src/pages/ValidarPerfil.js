@@ -77,6 +77,7 @@ export default function ValidarPerfil() {
     setModal({ show: false, title: "", body: "", onConfirm: null });
   };
 
+  // Cargar perfil médico al montar el componente
   useEffect(() => {
     api
       .get(`/perfiles_medicos/${user.id_usuario}`)
@@ -105,6 +106,7 @@ export default function ValidarPerfil() {
     setForm((f) => ({ ...f, [name]: value }));
   };
 
+  // Maneja el envío del formulario
   const handleSubmit = (e) => {
     e.preventDefault();
 
@@ -116,6 +118,7 @@ export default function ValidarPerfil() {
     });
   };
 
+  // Función para guardar el perfil médico
   const saveProfile = () => {
     setSaving(true);
     api
@@ -135,6 +138,7 @@ export default function ValidarPerfil() {
       .finally(() => setSaving(false));
   };
 
+  // Función para habilitar la edición del perfil
   const handleEdit = () => {
     showModal({
       title: "Editar perfil",

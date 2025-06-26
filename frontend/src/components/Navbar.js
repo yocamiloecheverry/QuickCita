@@ -6,6 +6,7 @@ import { Navbar, Nav, Container } from "react-bootstrap";
 import { FaStethoscope, FaUserMd, FaUserShield, FaUser } from "react-icons/fa";
 import { FaUserCircle } from "react-icons/fa";
 
+// Función para obtener los enlaces de navegación según el rol del usuario
 function getRoleNav(role) {
   switch (role) {
     case "paciente":
@@ -79,6 +80,7 @@ export default function AppNavbar() {
               </>
             )}
           </Nav>
+          {/* Seccion de perfil logueado */}
           {user && (
             <div className="d-flex align-items-center">
               <FaUserCircle className="me-2 text-primary" size={20} />

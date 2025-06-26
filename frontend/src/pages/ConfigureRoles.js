@@ -32,23 +32,28 @@ export default function ConfigureRoles() {
     );
   };
 
+  // Función para mostrar el modal de confirmación
   const showModal = ({ title, body, onConfirm }) => {
     setModal({ show: true, title, body, onConfirm });
   };
 
+  // Funciones para manejar la confirmación y cancelación del modal
   const handleModalConfirm = () => {
     if (modal.onConfirm) modal.onConfirm();
     setModal({ show: false, title: "", body: "", onConfirm: null });
   };
 
+
   const handleModalCancel = () => {
     setModal({ show: false, title: "", body: "", onConfirm: null });
   };
 
+  // Cargar los usuarios al montar el componente
   useEffect(() => {
     fetchUsers();
   }, []);
 
+  // Función para cargar los usuarios
   const fetchUsers = async () => {
     setLoading(true);
     try {
@@ -60,6 +65,7 @@ export default function ConfigureRoles() {
     setLoading(false);
   };
 
+  // Función para cambiar el rol de un usuario
   const changeRole = async (id, rol) => {
     try {
       await api.put(`/admin/usuarios/${id}/rol`, { rol });
@@ -70,6 +76,7 @@ export default function ConfigureRoles() {
     }
   };
 
+  // Función para eliminar un usuario
   const deleteUser = async (id) => {
     try {
       await api.delete(`/admin/usuarios/${id}`);
@@ -80,6 +87,7 @@ export default function ConfigureRoles() {
     }
   };
 
+  // Función para manejar el clic en el botón de eliminar usuario
   const handleDeleteClick = (user) => {
     showModal({
       title: "Eliminar Usuario",

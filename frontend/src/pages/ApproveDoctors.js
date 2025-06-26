@@ -13,6 +13,7 @@ export default function ApproveDoctors() {
     fetch();
   }, []);
 
+  // Función para cargar la lista de médicos pendientes
   const fetch = async () => {
     setLoading(true);
     try {
@@ -24,6 +25,7 @@ export default function ApproveDoctors() {
     setLoading(false);
   };
 
+  // Función para manejar la aprobación o rechazo de un médico
   const handle = async (id_perfil, action) => {
     try {
       if (action === "aprobar") {

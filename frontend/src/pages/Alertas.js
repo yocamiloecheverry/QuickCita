@@ -9,6 +9,7 @@ export default function Alertas() {
   const [alertas, setAlertas] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  // Cargar las alertas de citas próximas en la próxima hora
   useEffect(() => {
     api
       .get(`/citas/medico/${user.id_usuario}`)

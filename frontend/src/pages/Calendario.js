@@ -9,6 +9,7 @@ export default function Calendario() {
   const [citas, setCitas] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  // Cargar las citas del médico al iniciar el componente
   useEffect(() => {
     api
       .get(`/citas/medico/${user.id_usuario}`)
@@ -17,6 +18,7 @@ export default function Calendario() {
       .finally(() => setLoading(false));
   }, [user.id_usuario]);
 
+  // Si aún se están cargando las citas, mostrar un spinner
   if (loading)
     return (
       <Container className="py-5 text-center">

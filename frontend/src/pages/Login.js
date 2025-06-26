@@ -23,12 +23,14 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
+  // Maneja el cambio de los campos de entrada
   const handleChange = e => {
     const { name, value } = e.target;
     setCredentials(prev => ({ ...prev, [name]: value }));
     setError(""); // Limpiar error al escribir
   };
 
+  // Maneja el envío del formulario
   const handleSubmit = async e => {
     e.preventDefault();
     setError("");
