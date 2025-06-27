@@ -6,6 +6,7 @@ import {
   getAvailableSlots,
 } from "../services/appointmentService";
 import { getPerfilFilters } from "../services/filterService";
+import socket from "../socket";            
 import AppNavbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import CustomAlert from "../components/CustomAlert";
@@ -25,67 +26,56 @@ import {
 export default function Dashboard() {
   const { user } = useContext(AuthContext);
 
-  // Filtros seleccionados
   const [filters, setFilters] = useState({
     especialidad: "",
     ubicacion: "",
     seguro_medico: "",
   });
-
-  // Listas dinámicas de filtros
   const [especialidades, setEspecialidades] = useState([]);
   const [ubicaciones, setUbicaciones] = useState([]);
   const [seguros, setSeguros] = useState([]);
-
-  // Resultados de búsqueda
   const [doctors, setDoctors] = useState([]);
   const [loading, setLoading] = useState(false);
-
-  // Slots disponibles por médico
   const [slotsByDoctor, setSlotsByDoctor] = useState({});
-
-  // Modal de agendamiento
   const [showModal, setShowModal] = useState(false);
   const [selectedDoctor, setSelectedDoctor] = useState(null);
   const [fechaHora, setFechaHora] = useState("");
   const [notiMethod, setNotiMethod] = useState("email");
+  const [alert, setAlert] = useState({ show: false, message: "", variant: "info" });
+  const [modal, setModal] = useState({ show: false, title: "", body: "", onConfirm: null });
 
-  // Estados para alertas y modales personalizados
-  const [alert, setAlert] = useState({
-    show: false,
-    message: "",
-    variant: "info",
-  });
-  const [modal, setModal] = useState({
-    show: false,
-    title: "",
-    body: "",
-    onConfirm: null,
-  });
+  // Conexión a socket y escucha de 'appointmentCreated'
+  useEffect(() => {
+    if (!user?.id_usuario) return;
 
-  // Funciones para manejar alertas y modales
+    // Nos unimos al room en AuthContext, aquí solo escuchamos
+    socket.on("appointmentCreated", ({ fecha_hora, medico }) => {
+      const msg = `📅 Tu cita con Dr(a). ${medico} para el ${fecha_hora} ha sido creada.`;
+      showAlert(msg, "success");
+    });
+
+    return () => {
+      socket.off("appointmentCreated");
+    };
+  }, [user]);
+
+  // Funciones de alertas y modales
   const showAlert = (message, variant = "info") => {
     setAlert({ show: true, message, variant });
-    setTimeout(
-      () => setAlert({ show: false, message: "", variant: "info" }),
-      4000
-    );
+    setTimeout(() => setAlert({ show: false, message: "", variant: "info" }), 4000);
   };
-
   const showConfirmModal = ({ title, body, onConfirm }) => {
     setModal({ show: true, title, body, onConfirm });
   };
-
   const handleModalConfirm = () => {
-    if (modal.onConfirm) modal.onConfirm();
+    modal.onConfirm?.();
     setModal({ show: false, title: "", body: "", onConfirm: null });
   };
-
   const handleModalCancel = () => {
     setModal({ show: false, title: "", body: "", onConfirm: null });
   };
 
-  // Cargar valores de filtros desde el backend
+  // Carga inicial de filtros
   useEffect(() => {
     getPerfilFilters()
       .then(({ especialidades: esp, ubicaciones: ubi, seguros: seg }) => {
@@ -99,6 +89,7 @@ export default function Dashboard() {
       });
   }, []);
 
+  // Manejar cambios en los filtros
   const handleFilterChange = (e) => {
     setFilters((f) => ({ ...f, [e.target.name]: e.target.value }));
   };
@@ -110,25 +101,18 @@ export default function Dashboard() {
     try {
       const docs = await searchDoctors(filters);
       setDoctors(docs);
-
       if (docs.length === 0) {
-        showAlert(
-          "No se encontraron médicos con los filtros seleccionados",
-          "warning"
-        );
+        showAlert("No se encontraron médicos con esos filtros", "warning");
         setSlotsByDoctor({});
         return;
       }
-
-      // cargar slots para cada doctor
-      const slotsMap = {};
+      const map = {};
       await Promise.all(
         docs.map(async (doc) => {
-          const slots = await getAvailableSlots(doc.id_usuario);
-          slotsMap[doc.id_usuario] = slots;
+          map[doc.id_usuario] = await getAvailableSlots(doc.id_usuario);
         })
       );
-      setSlotsByDoctor(slotsMap);
+      setSlotsByDoctor(map);
       showAlert(`Se encontraron ${docs.length} médicos disponibles`, "success");
     } catch (err) {
       console.error("Error buscando médicos:", err);
@@ -138,26 +122,23 @@ export default function Dashboard() {
     }
   };
 
+  // Abrir modal de agendamiento
   const openModal = (doctor, slot) => {
     setSelectedDoctor(doctor);
     setFechaHora(slot);
     setShowModal(true);
   };
-  
+
   // Manejar agendamiento de cita
-  const handleAppointment = async () => {
+  const handleAppointment = () => {
     if (!fechaHora) {
-      showAlert("Por favor selecciona fecha y hora", "warning");
+      showAlert("Selecciona fecha y hora", "warning");
       return;
     }
-
-    // Mostrar modal de confirmación
     showConfirmModal({
       title: "Confirmar cita médica",
-      body: `¿Estás seguro de que deseas agendar una cita con Dr(a). ${
-        selectedDoctor?.nombre
-      } para el ${new Date(fechaHora).toLocaleString()}?`,
-      onConfirm: () => confirmAppointment(),
+      body: `¿Agendar cita con Dr(a). ${selectedDoctor.nombre} el ${new Date(fechaHora).toLocaleString()}?`,
+      onConfirm: confirmAppointment,
     });
   };
 
@@ -171,38 +152,28 @@ export default function Dashboard() {
         metodo_notificacion: notiMethod,
         seguro_medico: selectedDoctor.PerfilMedico?.seguro_medico || "",
       });
-      showAlert(
-        "¡Cita agendada exitosamente! Recibirás una notificación de confirmación.",
-        "success"
-      );
       setShowModal(false);
-
-      // Actualizar slots disponibles para ese médico
-      const updatedSlots = await getAvailableSlots(selectedDoctor.id_usuario);
+      showAlert("¡Cita agendada! - Revisa tu correo electronico", "success");
+      // actualizar slots
+      const updated = await getAvailableSlots(selectedDoctor.id_usuario);
       setSlotsByDoctor((prev) => ({
         ...prev,
-        [selectedDoctor.id_usuario]: updatedSlots,
+        [selectedDoctor.id_usuario]: updated,
       }));
     } catch (err) {
       console.error("Error agendando cita:", err);
-      showAlert(
-        err.message || "Error al agendar la cita. Intenta nuevamente.",
-        "danger"
-      );
+      showAlert(err.message || "Error al agendar cita", "danger");
     }
   };
 
   return (
     <>
-      {/* Alertas personalizadas */}
       <CustomAlert
         show={alert.show}
         message={alert.message}
         variant={alert.variant}
         onClose={() => setAlert({ show: false, message: "", variant: "info" })}
       />
-
-      {/* Modal personalizado */}
       <CustomModal
         show={modal.show}
         title={modal.title}
@@ -215,71 +186,54 @@ export default function Dashboard() {
         <AppNavbar />
         <div className="app-content">
           <Container className="py-5 d-flex flex-column">
+            {/* Form de filtros */}
             <Form onSubmit={handleSearch}>
               <Row className="g-3">
-                {/* Especialidad */}
                 <Col md>
                   <Form.Select
                     name="especialidad"
                     value={filters.especialidad}
                     onChange={handleFilterChange}
-                    className="stylish-select"
                   >
                     <option value="">-- Especialidad --</option>
                     {especialidades.map((sp) => (
-                      <option key={sp} value={sp}>
-                        {sp}
-                      </option>
+                      <option key={sp} value={sp}>{sp}</option>
                     ))}
                   </Form.Select>
                 </Col>
-
-                {/* Ubicación */}
                 <Col md>
                   <Form.Select
                     name="ubicacion"
                     value={filters.ubicacion}
                     onChange={handleFilterChange}
-                    className="stylish-select"
                   >
                     <option value="">-- Ubicación --</option>
                     {ubicaciones.map((loc) => (
-                      <option key={loc} value={loc}>
-                        {loc}
-                      </option>
+                      <option key={loc} value={loc}>{loc}</option>
                     ))}
                   </Form.Select>
                 </Col>
-
-                {/* Seguro médico */}
                 <Col md>
                   <Form.Select
                     name="seguro_medico"
                     value={filters.seguro_medico}
                     onChange={handleFilterChange}
-                    className="stylish-select"
                   >
                     <option value="">-- Seguro médico --</option>
                     {seguros.map((sg) => (
-                      <option key={sg} value={sg}>
-                        {sg}
-                      </option>
+                      <option key={sg} value={sg}>{sg}</option>
                     ))}
                   </Form.Select>
                 </Col>
-
                 <Col md="auto">
                   <Button type="submit" disabled={loading}>
-                    {loading ? (
-                      <Spinner animation="border" size="sm" />
-                    ) : (
-                      "Buscar"
-                    )}
+                    {loading ? <Spinner animation="border" size="sm" /> : "Buscar"}
                   </Button>
                 </Col>
               </Row>
             </Form>
 
+            {/* Lista de doctores y sus slots */}
             <Row className="mt-4 g-3">
               {doctors.map((doc) => (
                 <Col key={doc.id_usuario} xs={12} md={6} lg={4}>
@@ -287,14 +241,9 @@ export default function Dashboard() {
                     <Card.Body>
                       <Card.Title>{doc.nombre}</Card.Title>
                       <Card.Text>
-                        <strong>Especialidad:</strong>{" "}
-                        {doc.PerfilMedico?.especialidad}
-                        <br />
-                        <strong>Ubicación:</strong>{" "}
-                        {doc.PerfilMedico?.ubicacion}
+                        <strong>Especialidad:</strong> {doc.PerfilMedico?.especialidad}<br />
+                        <strong>Ubicación:</strong> {doc.PerfilMedico?.ubicacion}
                       </Card.Text>
-
-                      {/* slots disponibles */}
                       <div style={{ maxHeight: 120, overflowY: "auto" }}>
                         {slotsByDoctor[doc.id_usuario]?.length > 0 ? (
                           slotsByDoctor[doc.id_usuario].map((slot) => (
@@ -303,18 +252,13 @@ export default function Dashboard() {
                               className="d-flex justify-content-between align-items-center mb-1"
                             >
                               <small>{new Date(slot).toLocaleString()}</small>
-                              <Button
-                                size="sm"
-                                onClick={() => openModal(doc, slot)}
-                              >
+                              <Button size="sm" onClick={() => openModal(doc, slot)}>
                                 Reservar
                               </Button>
                             </div>
                           ))
                         ) : (
-                          <p className="text-muted">
-                            No hay horarios disponibles
-                          </p>
+                          <p className="text-muted">No hay horarios disponibles</p>
                         )}
                       </div>
                     </Card.Body>
@@ -323,7 +267,7 @@ export default function Dashboard() {
               ))}
             </Row>
 
-            {/* Modal de agendamiento */}
+            {/* Modal inline para agendar */}
             <Modal show={showModal} onHide={() => setShowModal(false)}>
               <Modal.Header closeButton>
                 <Modal.Title>Agendar con {selectedDoctor?.nombre}</Modal.Title>
@@ -345,7 +289,7 @@ export default function Dashboard() {
                   >
                     <option value="email">Email</option>
                     <option value="sms">SMS</option>
-                    <option value="ambos">Email y SMS</option>
+                    <option value="both">Email y SMS</option>
                   </Form.Select>
                 </Form.Group>
               </Modal.Body>

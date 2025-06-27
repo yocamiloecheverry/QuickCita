@@ -3,6 +3,8 @@ require("dotenv").config();
 
 const express = require("express");
 const cors = require("cors");
+const http = require('http');
+const { Server } = require('socket.io');
 
 // Tu conexión y la instancia de Sequelize
 const { connectDB, sequelize } = require("./src/config/db");
@@ -44,6 +46,20 @@ app.use("/api", routes);
 
 // —————— Manejador de Errores ——————
 app.use(errorHandler);
+
+// 1. Crear HTTP server y socket.io
+const server = http.createServer(app);
+const io = new Server(server, {
+  cors: { origin: '*' }    // ajusta tu CORS
+});
+
+// 2. Hacer io accesible dentro de req.app
+app.set('io', io);
+
+// 3. Configurar eventos de socket.io
+server.listen(PORT, () => {
+  console.log(`API + sockets corriendo en puerto ${PORT}`);
+});
 
 // —————— Iniciar Servidor ——————
 const startServer = async () => {
